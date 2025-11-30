@@ -36,7 +36,7 @@ This work was completed with the following constraints and choices: small custom
 ## Dataset Details
 
 * *Original source images (manually collected + Roboflow exports):* 130 images
-* *Final dataset size after augmentation:* 333 images
+* *Final dataset size after augmentation:* 352 images
 * *Annotation format:* YOLO-style (YOLOv11-compatible; class x_center y_center width height normalized format)
 * *Classes:*
 
@@ -90,7 +90,7 @@ The final dataset of *352* images was split as follows:
 * Works well for logos (small objects with clear shapes)
 * Built-in utilities for video inference and export
 
-*Hardware used for training:* Google Colab with GPU (CUDA enabled). Use a Colab GPU runtime (Tesla T4 / P100 / V100 where available).
+*Hardware used for training:* Google Colab with GPU (CUDA enabled). Use a Colab GPU runtime (Tesla T4 where available).
 
 *Suggested hyperparameters (example):*
 
@@ -172,7 +172,6 @@ python scripts/detect_video.py --weights runs/detect/train/weights/best.pt --sou
 
 ## Repository Structure
 
-
 ..Main-Directory/
 ├── data/                    # dataset with train/valid/test images and labels
 │   ├── train/
@@ -226,5 +225,3 @@ If you need help reproducing the results or want the Colab notebook used for tra
 * *Kishan Patel*
 
 ---
-
-Thank you — this README documents the dataset preparation, augmentation, training and inference steps used to produce the submitted sample video and CSV.
