@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 2
+names: ['Adidas', 'Puma']
+
+roboflow:
+  workspace: kishan21
+  project: brand_logo_detection-vpsgw
+  version: 3
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/kishan21/brand_logo_detection-vpsgw/dataset/3

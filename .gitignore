@@ -1,0 +1,17 @@
+# YOLO datasets
+
+# YOLO training outputs
+
+# model weights
+*.pth
+
+# Jupyter notebook checkpoints
+.ipynb_checkpoints/
+
+# Python junk
+__pycache__/
+*.pyc
+
+# OS
+.DS_Store
+Thumbs.db
