@@ -170,23 +170,28 @@ python scripts/detect_video.py --weights runs/detect/train/weights/best.pt --sou
 
 ---
 
-## Repository Structure
-
-..Main-Directory/
-├── data/                    # dataset with train/valid/test images and labels
+Main-Directory/
+├── data/                      # Dataset containing train/valid/test images and labels
 │   ├── train/
 │   ├── valid/
 │   └── test/
-├── models/                  # saved weights (best.pt)
-├── runs/                    # all run time model data and performance metrix
+│
+├── models/                    # Saved model weights (e.g., best.pt)
+│
+├── runs/                      # Training logs, performance metrics, and YOLO runtime outputs
+│
 ├── scripts/
-│   ├── Model_Train.ipynb    # training and testing code
-├── inputs/                  # sample input video(s)
-├── output/                  # result video + CSV
-├── README.md
-├── requirements.txt
-└── data.yaml
-└── yolo11n.pt
+│   ├── Model_Train.ipynb      # Notebook containing training, evaluation, and testing code
+│
+├── inputs/                    # Sample input video(s) used for inference
+│
+├── output/                    # Output videos, result visualizations, and CSV files
+│
+├── README.md                  # Project documentation
+├── requirements.txt           # Python dependencies
+├── data.yaml                  # YOLO dataset configuration file
+└── yolo11n.pt                 # Pretrained YOLO model weights
+
 
 ## Notes & Limitations
 
