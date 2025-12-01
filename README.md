@@ -192,7 +192,7 @@ Main-Directory/
 ├── data.yaml                  # YOLO dataset configuration file
 └── yolo11n.pt                 # Pretrained YOLO model weights
 
-
+---
 ## Notes & Limitations
 
 * The dataset was augmented and stretched to 512×512; stretching may distort logos slightly — consider maintaining aspect ratio in production.
