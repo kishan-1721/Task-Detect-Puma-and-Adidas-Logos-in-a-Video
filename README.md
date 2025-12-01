@@ -1,20 +1,15 @@
----
-
 # Puma & Adidas Logo Detection — README
 
-**Project:** Logo Detection in Video (Puma & Adidas)
-**Author:** Kishan Patel
+*Project:* Logo detection in video (Puma & Adidas)
+
+*Author:* Kishan Patel
+
+*Summary*
+This repository contains the code, dataset details, training configuration, and inference scripts used to train a custom object-detection model for detecting Puma and Adidas logos in video frames. The model was trained using a GPU (Google Colab with CUDA) and inference was tested on a sample video (full-size video had size issues; submitted results are for the sample video).
 
 ---
 
-## 📌 Summary
-
-This repository contains the code, dataset configuration, training notebook, and inference script for detecting **Puma** and **Adidas** logos in video frames using a custom-trained YOLO-based object detection model.
-The model was trained on a GPU environment (Google Colab with CUDA). Inference results are generated on a sample video due to submission size limits.
-
----
-
-## 📑 Table of Contents
+## Table of Contents
 
 * [Project Overview](#project-overview)
 * [Dataset Details](#dataset-details)
@@ -30,216 +25,208 @@ The model was trained on a GPU environment (Google Colab with CUDA). Inference r
 
 ---
 
-## 📝 Project Overview
+## Project Overview
 
-The goal of this project is to:
+Detect Puma and Adidas logos in each frame of a video, annotate detections with bounding boxes and class labels, save a labeled video, and export a CSV listing every detection (frame, class, confidence, bounding box coordinates).
 
-* Detect Puma and Adidas logos in video frames
-* Annotate each frame with bounding boxes
-* Generate a labeled output video
-* Export detections into a structured CSV file
-
-This project uses a **custom YOLO model** trained on an augmented dataset of 352 images. Due to file size constraints, inference and outputs were generated on a smaller sample video.
+This work was completed with the following constraints and choices: small custom dataset, augmentation applied to increase image count, and training performed on Google Colab GPU (CUDA). Due to video size constraints during submission, a sample video was used for demonstrating the inference pipeline and outputs.
 
 ---
 
-## 📂 Dataset Details
+## Dataset Details
 
-* **Base images:** ~130 manually collected + Roboflow augmented
-* **Final dataset size:** 352 images
-* **Annotation format:** YOLO (normalized x_center, y_center, width, height)
-* **Classes:**
+* *Original source images (manually collected + Roboflow exports):* 130 images
+* *Final dataset size after augmentation:* 352 images
+* *Annotation format:* YOLO-style (YOLOv11-compatible; class x_center y_center width height normalized format)
+* *Classes:*
 
   1. puma
   2. adidas
 
-### ✔ Preprocessing applied (Roboflow)
+*Key Roboflow pre-processing applied to each image:*
 
-* Auto-orientation (EXIF rotation fix)
-* Resize to **512×512 (stretched)**
+* Auto-orientation of pixel data (EXIF orientation stripped)
+* Resize to *512×512* (stretch)
 
-### ✔ Augmentations applied
+*Augmentations applied to generate additional images:*
 
-* 50% horizontal flip
-* 50% vertical flip
-* Random 90° rotations (0°, 90°, 180°, 270°)
-* Random crop (0–20%)
-* Random rotation (−15° to +15°)
+* 50% probability horizontal flip
+* 50% probability vertical flip
+* One of the following 90° rotations chosen equally: none, clockwise, counter-clockwise, upside-down
+* Random crop between 0% and 20% of the image
+* Random rotation between *-15°* and *+15°*
 
----
-
-## 🔧 Preprocessing Notes
-
-* Images resized to 512×512 for consistency
-* Augmentation improves robustness to orientation and partial visibility
-* Very small logos were minimized due to detection difficulty on limited data
+Roboflow (or equivalent) was used to perform augmentation and export the final dataset in YOLO format.
 
 ---
 
-## 🔀 Train / Val / Test Split
+## Preprocessing Notes
 
-| Split      | Images |
-| ---------- | ------ |
-| Train      | 333    |
-| Validation | 10     |
-| Test       | 9      |
-
-All split folders contain corresponding `images/` and `labels/`.
+* Images were resized by stretching to 512×512 during preprocessing. This keeps a consistent input resolution for training.
+* Roboflow's augmentation produced varied samples that mimic real-world variation (orientation, partial crops, rotation), improving generalization.
+* Very small logos (extremely tiny bounding boxes) were avoided where possible, since detection performance drops for extremely small objects with limited examples.
 
 ---
 
-## 🧠 Model Recommendation & Training Setup
+## Train / Val / Test Split
 
-* **Model family used:** YOLO (Ultralytics) — *yolo11n*
-* **Why YOLO?**
+The final dataset of *352* images was split as follows:
 
-  * Fast
-  * Good for small-object detection
-  * Easy video inference pipeline
-* **Training hardware:** Google Colab GPU (T4)
+* *Train:*  → *333 images*
+* *Validation:*  → *10 images*
+* *Test:*  → *9 images*
 
-### Suggested Hyperparameters
+> Splits are ready in data/ with corresponding images/ and labels/ subfolders for each split.
 
-| Parameter  | Value              |
-| ---------- | ------------------ |
-| Epochs     | 300                |
-| Image size | 640                |
-| Batch size | 16                 |
-| Optimizer  | Default (SGD/Adam) |
+---
 
-### Example `data.yaml`
+## Model Recommendation & Training Setup
 
-```yaml
+*Recommended model family:* YOLO (Ultralytics) — yolov11n or yolov8s or yolov8n for speed/efficiency. YOLOv11 format annotations are compatible when exported in standard YOLO-format.
+
+*Why YOLO?*
+
+* Fast to train and infer
+* Works well for logos (small objects with clear shapes)
+* Built-in utilities for video inference and export
+
+*Hardware used for training:* Google Colab with GPU (CUDA enabled). Use a Colab GPU runtime (Tesla T4 where available).
+
+*Suggested hyperparameters (example):*
+
+* epochs: 300 (adjust depending on validation mAP)
+* imgsz: 640 (YOLO will internally resize from 512 input; higher shapes may improve accuracy at cost of speed)
+* batch: 16 (Colab GPU memory dependent)
+* optimizer: Adam / SGD (default from Ultralytics is usually fine)
+
+**Example data.yaml**
+
+yaml
 train: ../data/images/train
 val: ../data/images/valid
 test: ../data/images/test
-
 nc: 2
 names: ["puma", "adidas"]
-```
+
 
 ---
 
-## 🚀 Training Steps (Colab)
+## Training Steps (Colab)
 
-1. Enable GPU runtime
-2. Install dependencies:
+1. Create a Colab notebook and select *GPU* runtime.
+2. Install dependencies (example uses Ultralytics YOLO and common libs):
 
-```bash
+bash
 pip install ultralytics roboflow opencv-python-headless pandas
-```
 
-3. Mount Drive:
 
-```python
+3. Upload dataset to Colab or mount Google Drive (recommended for persistence):
+
+python
 from google.colab import drive
 drive.mount('/content/drive')
-```
 
-4. Train the model:
 
-```python
-from ultralytics import YOLO
+4. Start training (example using Ultralytics YOLO API):
 
-model = YOLO("yolo11n.pt")  # pretrained weights
+python
+model = YOLO("yolo11n.pt")
 
 results = model.train(
-    data="/content/Brand_Logo_Detection-3/data.yaml",
+    data=r"/content/Brand_Logo_Detection-3/data.yaml",
     epochs=300,
-    imgsz=640
+    imgsz=640,
+    device=device  # auto-selected GPU/CPU
 )
-```
 
-5. Best weights will be saved under:
 
-```
-runs/detect/train/weights/best.pt
-```
+5. Monitor training metrics (loss, mAP at 0.5) and adjust epochs if necessary. Save the best model weights (e.g. runs/detect/train/weights/best.pt).
+
+> If you use a different YOLO implementation (v11), follow its training CLI/API. The repository contains scripts/Model_Train.ipynb with a ready-to-run example for Colab.
 
 ---
 
-## 🎥 Inference (Video) & CSV Output
+## Inference (Video) & CSV Output
 
-### Goal
+*Goal:* Run model on video frames and generate a labeled video + CSV with detection details.
 
-* Process each frame
-* Detect Puma/Adidas
-* Save annotated video
-* Save CSV with:
+*Sample inference workflow (high-level):*
 
-| frame_no | brand | confidence | x1 | y1 | x2 | y2 |
+1. Download / place the sample video in inputs/.
+2. Load the trained model weights.
+3. Iterate frames, run model.predict on each frame.
+4. For each detection, write a line into detections.csv with columns:
 
-### Example Script (provided in repo)
+   * frame_no, brand, confidence, x1, y1, x2, y2
+5. Draw bounding boxes + labels onto frames and write frames to output/output_labeled_video.mp4.
 
-```bash
-python scripts/detect_video.py \
-    --weights runs/detect/train/weights/best.pt \
-    --source inputs/sample_video.mp4 \
-    --output output/output_labeled_video.mp4 \
-    --csv output/detections.csv
-```
+*Note:* Due to video size limitations during submission, only a *sample video* was processed and included in output/.
 
-A sample video and its inference result are included in the `inputs/` and `output/` directories.
+A ready-to-run script scripts/detect_video.py is included in this repo and expects:
+
+bash
+python scripts/detect_video.py --weights runs/detect/train/weights/best.pt --source inputs/sample_video.mp4 --output output/output_labeled_video.mp4 --csv output/detections.csv
+
 
 ---
 
-## 📁 Repository Structure
-
-```
 Main-Directory/
-├── data/                      # Dataset (train/valid/test)
-├── models/                    # Saved model weights (best.pt)
-├── runs/                      # YOLO training logs + metrics
+├── data/                      # Dataset containing train/valid/test images and labels
+│   ├── train/
+│   ├── valid/
+│   └── test/
+│
+├── models/                    # Saved model weights (e.g., best.pt)
+│
+├── runs/                      # Training logs, performance metrics, and YOLO runtime outputs
+│
 ├── scripts/
-│   ├── Model_Train.ipynb      # Training and evaluation notebook
-├── inputs/                    # Sample input videos
-├── output/                    # Output videos + CSV results
-├── README.md                  # Documentation
-├── requirements.txt           # Dependencies
-├── data.yaml                  # YOLO dataset config
-└── yolo11n.pt                 # Pretrained YOLO weights
-```
+│   ├── Model_Train.ipynb      # Notebook containing training, evaluation, and testing code
+│
+├── inputs/                    # Sample input video(s) used for inference
+│
+├── output/                    # Output videos, result visualizations, and CSV files
+│
+├── README.md                  # Project documentation
+├── requirements.txt           # Python dependencies
+├── data.yaml                  # YOLO dataset configuration file
+└── yolo11n.pt                 # Pretrained YOLO model weights
+
+---
+## Notes & Limitations
+
+* The dataset was augmented and stretched to 512×512; stretching may distort logos slightly — consider maintaining aspect ratio in production.
+* Extremely small logos are hard to detect reliably without many examples or higher-resolution inputs.
+* Only a sample video was processed due to submission size constraints; full video inference instructions are included in the repo.
 
 ---
 
-## ⚠️ Notes & Limitations
+## How to Reproduce (Quick Commands)
 
-* 512×512 *stretched* resize may distort logos
-* Very small logos remain challenging without high-resolution data
-* Only a **sample video** is included due to submission limitations
+1. Install requirements:
 
----
-
-## 💡 How to Reproduce (Quick Commands)
-
-### 1️⃣ Install dependencies
-
-```bash
+bash
 pip install -r requirements.txt
-```
 
-### 2️⃣ Train model
 
-```bash
+2. Train (Colab / local):
+
+bash
 python scripts/train.py --data data.yaml --epochs 300 --imgsz 640 --batch 16
-```
 
-### 3️⃣ Run inference
 
-```bash
-python scripts/detect_video.py \
-    --weights models/best.pt \
-    --source inputs/sample_video.mp4 \
-    --output output/output_labeled_video.mp4 \
-    --csv output/detections.csv
-```
+3. Inference on sample video:
+
+bash
+python scripts/Model_Train.ipynb --weights models/best.pt --source inputs/sample_video.mp4 --output output/output_labeled_video.mp4 --csv output/detections.csv
+
 
 ---
 
-## 📩 Contact
+## Contact
 
-For support, notebook access, or clarifications:
+If you need help reproducing the results or want the Colab notebook used for training, contact:
 
-**Kishan Patel**
+* *Kishan Patel*
 
 ---
